@@ -3,13 +3,6 @@ services:
     mp-apis:
         image: fiware/biz-ecosystem-apis:v7.6.0
         container_name: mp-apis
-        #ports:
-        #    - 4848:4848
-        #    - 8080:8080
-        #links:
-        #    - mp-mysql
-        #depends_on:
-        #    - mp-mysql
         networks:
             marketplace:
                 aliases:

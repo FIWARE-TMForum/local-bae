@@ -7,12 +7,6 @@ services:
             marketplace:
                 aliases:
                     - mp-charging.docker
-        #ports:
-        #    - 8006:8006
-        #depends_on:
-        #    - mp-mongo
-        #    - mp-apis
-        #    - mp-rss
         volumes:
             # - ./charging-settings:/business-ecosystem-charging-backend/src/user_settings  # Used if the settings files are provided through the volume
             #- ./entrypoint.sh:/entrypoint.sh
@@ -63,14 +57,7 @@ services:
     mp-proxy:
         image: fiware/biz-ecosystem-logic-proxy:v8.0.0
         container_name: mp-proxy
-        #links:
-        #    - mp-mongo
-        #    - mp-elasticsearch
         depends_on:
-        #    - mp-mongo
-        #    - mp-elasticsearch
-        #    - mp-apis
-        #    - mp-rss
             - mp-charging
         networks:
             marketplace:
@@ -100,9 +87,6 @@ services:
             # - BAE_LP_HTTPS_PORT=443  # Port where the service runs when SSL is enabled (when HTTPS enabled is true)
 
             # ------ OAUTH2 Config ------
-            #- BAE_LP_OAUTH2_SERVER=https://idp.ai-marketplace.fiware.io/  # URL of the FIWARE IDM used for user authentication
-            #- BAE_LP_OAUTH2_CLIENT_ID=6228a06a-2f07-4a6a-a6d0-4ee09f4cde6c  # OAuth2 Client ID of the BAE applicaiton
-            #- BAE_LP_OAUTH2_CLIENT_SECRET=06d17844-96f4-42a0-baf6-cafa103c77a0  # OAuth Client Secret of the BAE application
             - BAE_LP_OAUTH2_CALLBACK=http://localhost:8004/auth/fiware/callback  # Callback URL for receiving the access tokens
             - BAE_LP_OAUTH2_ADMIN_ROLE=admin  # Role defined in the IDM client app for admins of the BAE 
             - BAE_LP_OAUTH2_SELLER_ROLE=seller  # Role defined in the IDM client app for sellers of the BAE 
