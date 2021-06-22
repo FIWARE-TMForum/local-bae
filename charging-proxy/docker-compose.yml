@@ -87,7 +87,6 @@ services:
             # - BAE_LP_HTTPS_PORT=443  # Port where the service runs when SSL is enabled (when HTTPS enabled is true)
 
             # ------ OAUTH2 Config ------
-            - BAE_LP_OAUTH2_CALLBACK=http://localhost:8004/auth/fiware/callback  # Callback URL for receiving the access tokens
             - BAE_LP_OAUTH2_ADMIN_ROLE=admin  # Role defined in the IDM client app for admins of the BAE 
             - BAE_LP_OAUTH2_SELLER_ROLE=seller  # Role defined in the IDM client app for sellers of the BAE 
             - BAE_LP_OAUTH2_CUSTOMER_ROLE=customer  # Role defined in the IDM client app for customers of the BAE 
@@ -119,7 +118,7 @@ services:
             - BAE_LP_ENDPOINT_INVENTORY_HOST=mp-apis.docker
             - BAE_LP_ENDPOINT_ORDERING_HOST=mp-apis.docker
             - BAE_LP_ENDPOINT_BILLING_HOST=mp-apis.docker
-            - BAE_LP_ENDPOINT_RSS_HOST=mp-apis.docker
+            - BAE_LP_ENDPOINT_RSS_HOST=mp-rss.docker
             - BAE_LP_ENDPOINT_USAGE_HOST=mp-apis.docker
             - BAE_LP_ENDPOINT_PARTY_HOST=mp-apis.docker
             - BAE_LP_ENDPOINT_CUSTOMER_HOST=mp-apis.docker

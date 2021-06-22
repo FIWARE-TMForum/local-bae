@@ -44,16 +44,22 @@ Check that RSS container is up and running with `docker logs mp-rss`. Wait until
 
 
 ### Deploy Charging Backend and Logic Proxy
-Create a file `charging-proxy/proxy.env` and set the following content, where you fill in:
+Create a file `charging-proxy/proxy.env` and set the following content, where you fill in (in case of 
+using OAuth2 with an external Keyrock instance as IDP):
 
 * URL of the external IDP
+* BAE_LP_OAUTH2_CALLBACK: Callback URL of logic proxy
 * ClientId and ClientSecret of the external IDPs application
 
 ```text
 BAE_LP_OAUTH2_SERVER=<URL>
+BAE_LP_OAUTH2_CALLBACK=http://localhost:8004/auth/fiware/callback
 BAE_LP_OAUTH2_CLIENT_ID=<ClientId>
 BAE_LP_OAUTH2_CLIENT_SECRET=<ClientSecret>
 ```
+In the case that the external IDP is not Keyrock, then you also need to provide the ENV 
+`BAE_LP_OAUTH2_PROVIDER` and maybe additional variables in this file. Also the callback 
+URI needs to be adopted for the different strategy.
 
 Now start the charging backend and logic proxy:
 ```shell
