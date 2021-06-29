@@ -1,1 +1,8 @@
 *~
+apis/apis-wars/
+charging-proxy/charging-inst-plugins/
+charging-proxy/docker-compose.yml.org
+charging-proxy/proxy-locales/
+charging-proxy/proxy*.env
+db/mongo-data/
+db/mysql-data/

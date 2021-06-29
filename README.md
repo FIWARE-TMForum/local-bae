@@ -76,12 +76,29 @@ Open the BAE marketplace [page](http://localhost:8004). Login with a user that h
 external IDP.
 
 
+### Makefile
+
+There is also a routine in the Makefile to deploy all the containers. It will wait 30s between the deployment of each 
+component. Note that depending on the performance of the host, this might not be sufficient.
+
+To deploy all containers, run
+```shell
+make start
+```
+
+
+
 ## Shutdown
 
 Run the following in each of the directories above:
 ```shell
 docker compose down
 ```
+Alternatively you can use the Makefile:
+```shell
+make stop
+```
+
 
 **Optional**: In order to remove the network and directories created before, run
 ```shell

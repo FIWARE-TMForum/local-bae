@@ -1,5 +1,19 @@
 all: init
 
+start:
+	@echo "Starting BAE containers..."
+	@cd ./db && docker compose up -d && echo "Waiting 30s..." && sleep 30
+	@cd ./apis && docker compose up -d && echo "Waiting 30s..." && sleep 30
+	@cd ./rss && docker compose up -d && echo "Waiting 30s..." && sleep 30
+	@cd ./charging-proxy && docker compose up -d && echo "All containers started"
+
+stop:
+	@echo "Stopping BAE containers..."
+	@cd ./charging-proxy && docker compose down
+	@cd ./rss && docker compose down
+	@cd ./apis && docker compose down
+	@cd ./db && docker compose down && echo "All containers stopped"
+
 init:
 	-docker network create -d bridge marketplace
 	mkdir -p ./db/mongo-data
@@ -26,4 +40,4 @@ clean:
 	rm -rf ./charging-proxy/proxy-static
 	rm -rf ./charging-proxy/proxy-locales
 
-.PHONY: all init clean
+.PHONY: all init clean start
