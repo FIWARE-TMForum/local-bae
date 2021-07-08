@@ -1,7 +1,7 @@
 version: '3'
 services:
     mp-rss:
-        image: fiware/biz-ecosystem-rss:v7.8.0
+        image: fiware/biz-ecosystem-rss:v8.0.0
         container_name: mp-rss
         networks:
             marketplace:
