@@ -1,14 +1,34 @@
 # Local BAE instance
 
 Deploying local BAE instance with docker compose. Components are run in separate steps in order to 
-be able to wait for components coming up, since docker compose dow not allow to depend on healthy 
+be able to wait for components coming up, since docker compose does not allow to depend on healthy 
 containers.
 
-This setup uses an external IDP. 
+This setup uses an external IDP which need to be configured first. 
 
 
 
 ## Steps
+
+The following describes how to configure and deploy the required containers for 
+the databases:
+
+* MySQL
+* MongoDB
+* elasticsearch
+
+and the containers for the different BAE components of:
+
+* APIs
+* RSS
+* Charging Backend
+* Logic Proxy
+
+Note that the `Makefile` also contains a routine to start all containers 
+(see the [end](#Makefile) of this section), but make sure to configure 
+all components first, especially the Logic Proxy.
+
+
 
 ### Initialize
 Create the docker network and necessary directories for persistent storage of data:
@@ -16,6 +36,7 @@ Create the docker network and necessary directories for persistent storage of da
 make init
 ```
 This only needs to be run once, or if you cleaned the setup with `make clean` before.
+
 
 
 ### Deploy databases
@@ -44,7 +65,8 @@ Check that RSS container is up and running with `docker logs mp-rss`. Wait until
 
 
 ### Deploy Charging Backend and Logic Proxy
-Create a file `charging-proxy/proxy.env` and set the following content, where you fill in (in case of 
+Create a file `charging-proxy/proxy.env` and set the following content, where you fill in the configuration 
+for (in case of 
 using OAuth2 with an external Keyrock instance as IDP):
 
 * URL of the external IDP
@@ -58,8 +80,12 @@ BAE_LP_OAUTH2_CLIENT_ID=<ClientId>
 BAE_LP_OAUTH2_CLIENT_SECRET=<ClientSecret>
 ```
 In the case that the external IDP is not Keyrock, then you also need to provide the ENV 
-`BAE_LP_OAUTH2_PROVIDER` and maybe additional variables in this file. Also the callback 
+`BAE_LP_OAUTH2_PROVIDER` and maybe additional variables in this file. This also applies when using a 
+different protocol. Also the callback 
 URI needs to be adopted for the different strategy.
+
+The ENV file also allows to set further environment variables for the logic proxy which are not contained 
+in the docker compose file.
 
 Now start the charging backend and logic proxy:
 ```shell
