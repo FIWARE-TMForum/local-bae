@@ -1,0 +1,210 @@
+version: '3.5'
+
+networks:
+  bae:
+    name: bae
+    external: false
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.2.0.0/16
+
+secrets:
+  bae_key:
+    file: "${BAE_TOKEN_KEY_FILE}"
+  bae_cert:
+    file: "${BAE_TOKEN_CRT_FILE}"
+
+services:
+  bae-elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
+    container_name: bae-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - transport.publish_port=9200
+    networks:
+      bae:
+        ipv4_address: 10.2.0.2
+        aliases:
+          - bae-elasticsearch.docker
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1"]
+      start_period: 30s
+      interval: 30s
+      timeout: 30s
+      retries: 3
+              
+  bae-mongo:
+    image: mongo:3.6.21
+    container_name: bae-mongo
+    networks:
+      bae:
+        ipv4_address: 10.2.0.3
+        aliases:
+          - bae-mongo.docker
+    healthcheck:
+      test: echo 'db.runCommand({serverStatus:1}).ok' | mongo admin -u root -p root --quiet | grep 1
+      start_period: 30s
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    env_file:
+      - ./envs/mongo.env
+    volumes:
+      - ./db/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      # Uncomment for data persistance
+      #- ./mongo-data:/data/db
+
+  bae-mysql:
+    image: mysql:5.7
+    container_name: bae-mysql
+    networks:
+      bae:
+        ipv4_address: 10.2.0.4
+        aliases:
+          - bae-mysql.docker
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -hlocalhost -P 8152 -u root -proot --silent"]
+      start_period: 30s
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    env_file:
+      - ./envs/mysql.env
+    volumes:
+      - ./db/init-mysql.sql:/docker-entrypoint-initdb.d/init-mysql.sql
+      # Uncomment for data persistance
+      #- ./mysql-data:/var/lib/mysql
+
+  bae-keyrock:
+    image: fiware/idm:8.1.0
+    container_name: bae-keyrock
+    networks:
+      bae:
+        aliases:
+          - bae-keyrock.docker
+        ipv4_address: 10.2.0.10
+    depends_on:
+      - bae-mysql
+    environment:
+      - IDM_LANG_DEFAULT
+      - IDM_TITLE
+    env_file:
+      - ./envs/keyrock.env
+      
+  bae-apis:
+    image: fiware/biz-ecosystem-apis:v8.0.0
+    container_name: bae-apis
+    depends_on:
+      - bae-mysql
+    entrypoint: /init/init-apis.sh
+    networks:
+      bae:
+        ipv4_address: 10.2.0.20
+        aliases:
+          - bae-apis.docker
+    healthcheck:
+      test: ["CMD", "wget", "-q", "http://localhost:8080/DSProductInventory"]
+      start_period: 90s
+      interval: 30s
+      timeout: 30s
+      retries: 1
+    env_file:
+      - ./envs/apis.env
+    volumes:
+      - ./init/init-apis.sh:/init/init-apis.sh
+      
+  bae-rss:
+    image: fiware/biz-ecosystem-rss:v8.0.0
+    container_name: bae-rss
+    depends_on:
+      - bae-mysql
+      - bae-apis
+    entrypoint: /init/init-rss.sh
+    networks:
+      bae:
+        ipv4_address: 10.2.0.21
+        aliases:
+          - bae-rss.docker
+    healthcheck:
+      test: ["CMD", "/glassfish4/glassfish/bin/asadmin", "show-component-status", "DSRevenueSharing"]
+      start_period: 150s
+      interval: 30s
+      timeout: 30s
+      retries: 1
+    volumes:
+      - ./init/init-rss.sh:/init/init-rss.sh
+    env_file:
+      - ./envs/rss.env
+
+  bae-charging:
+    image: fiware/biz-ecosystem-charging-backend:v8.0.0
+    container_name: bae-charging
+    depends_on:
+      - bae-mongo
+      - bae-apis
+      - bae-rss
+    entrypoint: /init/init-charging.sh
+    networks:
+      bae:
+        aliases:
+          - bae-charging.docker
+        ipv4_address: 10.2.0.22
+    healthcheck:
+      test: ["CMD", "wget", "-q", "http://localhost:8006/charging/api/assetManagement/currencyCodes"]
+      start_period: 150s
+      interval: 30s
+      timeout: 30s
+      retries: 1
+    volumes:
+      - ./init/init-charging.sh:/init/init-charging.sh
+    secrets:
+      - bae_key
+      - bae_cert
+    environment:
+      - BAE_EORI
+      - BAE_TOKEN_KEY_CONTENT
+      - BAE_TOKEN_CRT_CONTENT
+      - BAE_CB_PAYMENT_METHOD
+      - BAE_CB_EMAIL
+      - BAE_CB_PROPAGATE_TOKEN
+    env_file:
+      - ./envs/charging.env
+
+  bae-proxy:
+    image: fiware/biz-ecosystem-logic-proxy:v8.0.0
+    container_name: bae-proxy
+    depends_on:
+      - bae-mongo
+      - bae-apis
+      - bae-rss
+      - bae-charging
+      - bae-elasticsearch
+    entrypoint: /init/init-proxy.sh
+    networks:
+      bae:
+        aliases:
+          - bae-proxy.docker
+        ipv4_address: 10.2.0.23
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail localhost:8004/version || exit 1"]
+      start_period: 150s
+      interval: 30s
+      timeout: 30s
+      retries: 5
+    volumes:
+      - ./init/init-proxy.sh:/init/init-proxy.sh
+    secrets:
+      - bae_key
+      - bae_cert
+    environment:
+      - BAE_EORI
+      - BAE_TOKEN_KEY_CONTENT
+      - BAE_TOKEN_CRT_CONTENT
+      - BAE_LP_EXT_LOGIN
+      - BAE_LP_SHOW_LOCAL_LOGIN
+      - BAE_LP_PROPAGATE_TOKEN
+      - BAE_LP_OIDC_ENABLED
+      - BAE_LP_REVENUE_MODEL
+    env_file:
+      - ./envs/proxy.env

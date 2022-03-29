@@ -1,0 +1,9 @@
+-----BEGIN CERTIFICATE-----
+<...CERT_1...>
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+<...CERT_2...>
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+<...ROOT_CERT...>
+-----END CERTIFICATE-----
