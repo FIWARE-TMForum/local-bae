@@ -1,7 +1,6 @@
 /*
   Setup for Marketplace MongoDB databases and users
 */
-print('##### Setting up MongoDB #####');
 
 // Charging
 db = db.getSiblingDB('charging_db');

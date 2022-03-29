@@ -1,14 +1,21 @@
-# Local BAE instance
+# Deploying local instance of the Business API Ecosystem
 
-Deploying local BAE instance with docker compose. Components are run in separate steps in order to 
-be able to wait for components coming up, since docker compose does not allow to depend on healthy 
-containers.
-
-This setup uses an external IDP which need to be configured first. 
+Deploying local Business API Ecosystem (BAE) and Keyrock Identity Provider (IDP) 
+instance with docker compose. 
 
 
+## Remarks
 
-## Steps
+The components reside in a docker network 'bae' created when using docker compose. 
+Within this network, containers can communicate with each other.
+
+This setup uses fixed IPs for each container within the subnet `10.2.0.0/16`. 
+Therefore make sure 
+that no IPs are already being used in this subnet.
+
+
+
+## Deployment
 
 The following describes how to configure and deploy the required containers for 
 the databases:
@@ -17,136 +24,77 @@ the databases:
 * MongoDB
 * elasticsearch
 
-and the containers for the different BAE components of:
+the Keyrock IDP and the containers for the different BAE components of:
 
 * APIs
 * RSS
 * Charging Backend
 * Logic Proxy
 
-Note that the `Makefile` also contains a routine to start all containers 
-(see the [end](#Makefile) of this section), but make sure to configure 
-all components first, especially the Logic Proxy.
+This setup comes with a default configuration for running a standard instance of the 
+BAE. The Keyrock database is initialized with an application 'Marketplace' for the BAE 
+in order to use 
+this Keyrock instance as a local IDP for login at the BAE via OAuth2.
 
-
-
-### Initialize
-Create the docker network and necessary directories for persistent storage of data:
+To deploy all components, simply run:
 ```shell
-make init
+docker-compose up -d
 ```
-This only needs to be run once, or if you cleaned the setup with `make clean` before.
 
-
-
-### Deploy databases
+For stopping all containers:
 ```shell
-cd ./db
-docker compose up -d
+docker-compose down
 ```
-Check that elasticsearch, MySQL and MongoDB are up and running with `docker logs mp-XXX` (check container names 
-in `docker-compose.yml`).
 
 
-### Deploy APIs
+### Configuration
+
+Configuration is done via environment variables stored in the 
+[.env](./.env) file and separate env files in the 
+[envs/](./envs) directory. 
+
+
+To change certain parameters, e.g., adding a configuration to participate in an i4Trust data space, 
+make a copy of the default [.env](./.env) file
 ```shell
-cd ./apis
-docker compose up -d
+cp .env my.env
 ```
-Check that APIs container is up and running with `docker logs mp-apis`. Wait until deployment has finished
-
-
-### Deploy RSS
+edit the `my.env` file according to your needs and then deploy all components with 
 ```shell
-cd ./rss
-docker compose up -d
-```
-Check that RSS container is up and running with `docker logs mp-rss`. Wait until deployment has finished
-
-
-### Deploy Charging Backend and Logic Proxy
-Create a file `charging-proxy/proxy.env` and set the following content, where you fill in the configuration 
-for (in case of 
-using OAuth2 with an external Keyrock instance as IDP):
-
-* URL of the external IDP
-* BAE_LP_OAUTH2_CALLBACK: Callback URL of logic proxy
-* ClientId and ClientSecret of the external IDPs application
-
-```text
-BAE_LP_OAUTH2_SERVER=<URL>
-BAE_LP_OAUTH2_CALLBACK=http://localhost:8004/auth/fiware/callback
-BAE_LP_OAUTH2_CLIENT_ID=<ClientId>
-BAE_LP_OAUTH2_CLIENT_SECRET=<ClientSecret>
-```
-In the case that the external IDP is not Keyrock, then you also need to provide the ENV 
-`BAE_LP_OAUTH2_PROVIDER` and maybe additional variables in this file. This also applies when using a 
-different protocol. Also the callback 
-URI needs to be adopted for the different strategy.
-
-The ENV file also allows to set further environment variables for the logic proxy which are not contained 
-in the docker compose file.
-
-Now start the charging backend and logic proxy:
-```shell
-cd ./charging-proxy
-docker compose up -d
-```
-Check that charging and proxy containers are up and running with `docker logs mp-charging`/`docker logs mp-proxy`. 
-The indexing of the logic proxy takes some time.
-
-Don't worry about the `401 Unauthorized` error when the charging backend is starting and trying to connect to the RSS 
-API, this is ok!
-
-Open the BAE marketplace [page](http://localhost:8004). Login with a user that has been configured in the 
-external IDP.
-
-
-### Makefile
-
-There is also a routine in the Makefile to deploy all the containers. It will wait 30s between the deployment of each 
-component. Note that depending on the performance of the host, this might not be sufficient.
-
-To deploy all containers, run
-```shell
-make start
+docker-compose --env-file ./my.env up -d
 ```
 
 
 
-## Shutdown
+## Usage
 
-Run the following in each of the directories above:
-```shell
-docker compose down
+
+### BAE
+
+As soon as the Logic Proxy component of the BAE (container name: 'bae-proxy') is healthy, 
+you can open the marketplace start page 
+on your host's browser by opening the URL: [http://10.2.0.23:8004](http://10.2.0.23:8004). 
+Login is performed using the pre-configured Keyrock IDP. 
+For a first test, hit the 'Sign in' button and
+enter the admin credentials:
 ```
-Alternatively you can use the Makefile:
-```shell
-make stop
+Username: admin@test.com
+Password: admin
 ```
+Authorize the Marketplace and then you are logged in as a user with admin priviliges on the BAE. 
+
+Note, that when enabling external IDPs from an i4Trust data space, you might also enable showing the 
+'Local Login' button with the ENV `BAE_LP_SHOW_LOCAL_LOGIN`, in order to be also able to use the locally 
+configured Keyrock for login. If not, the local IDP can be used for login by directly entering 
+[http://10.2.0.23:8004/login](http://10.2.0.23:8004/login) at the host's browser.
 
 
-**Optional**: In order to remove the network and directories created before, run
-```shell
-make clean
-```
-**Note**: This will delete all persistently stored content in the created directories!
+
+### Keyrock
+
+You can also login directly at the Keyrock IDP by opening [http://10.2.0.10:8080](http://10.2.0.10:8080) 
+within your browser and using the same admin credentials. When being logged in, you will find a pre-configured 
+Application for the BAE (Marketplace). Within the Admin UI, you can add further users and authorize them for 
+the BAE.
 
 
-
-## Problem solving
-
-### Network not found
-When starting a container and there appears an error 
-like `Error response from daemon: network cdf0e4ed2876b14ee201a2243a5df96ba62527f85fd9c0b2615f43beae8d8e81 not found`, 
-there might be still an existing container referring to the deleted network. 
-
-You need to check for still existing BAE containers (prefix: `mp-`), that have not been deleted and are in `Exited` state:
-```shell
-docker container ls -a
-```
-
-Delete these containers:
-```shell
-docker container rm <CONTAINER-ID>
-```
