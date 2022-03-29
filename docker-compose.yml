@@ -35,7 +35,7 @@ services:
       retries: 3
               
   bae-mongo:
-    image: mongo:3.6.21
+    image: mongo:4.4.13
     container_name: bae-mongo
     networks:
       bae:
@@ -93,7 +93,7 @@ services:
       - ./envs/keyrock.env
       
   bae-apis:
-    image: fiware/biz-ecosystem-apis:v8.0.0
+    image: fiware/biz-ecosystem-apis:v8.1.0-rc1
     container_name: bae-apis
     depends_on:
       - bae-mysql
@@ -138,7 +138,7 @@ services:
       - ./envs/rss.env
 
   bae-charging:
-    image: fiware/biz-ecosystem-charging-backend:v8.0.0
+    image: fiware/biz-ecosystem-charging-backend:v8.1.0-rc2
     container_name: bae-charging
     depends_on:
       - bae-mongo
@@ -168,11 +168,12 @@ services:
       - BAE_CB_PAYMENT_METHOD
       - BAE_CB_EMAIL
       - BAE_CB_PROPAGATE_TOKEN
+      - BAE_CB_MAX_UPLOAD_SIZE
     env_file:
       - ./envs/charging.env
 
   bae-proxy:
-    image: fiware/biz-ecosystem-logic-proxy:v8.0.0
+    image: fiware/biz-ecosystem-logic-proxy:v8.1.0-rc8
     container_name: bae-proxy
     depends_on:
       - bae-mongo
