@@ -138,7 +138,7 @@ services:
       - ./envs/rss.env
 
   bae-charging:
-    image: fiware/biz-ecosystem-charging-backend:v8.1.0-rc2
+    image: fiware/biz-ecosystem-charging-backend:v8.1.0-rc3
     container_name: bae-charging
     depends_on:
       - bae-mongo
