@@ -138,7 +138,7 @@ services:
       - ./envs/rss.env
 
   bae-charging:
-    image: fiware/biz-ecosystem-charging-backend:v8.1.0-rc3
+    image: fiware/biz-ecosystem-charging-backend:v8.1.0-dev
     container_name: bae-charging
     depends_on:
       - bae-mongo
@@ -166,6 +166,8 @@ services:
       - BAE_TOKEN_KEY_CONTENT
       - BAE_TOKEN_CRT_CONTENT
       - BAE_CB_PAYMENT_METHOD
+      - BAE_CB_PAYPAL_CLIENT_ID
+      - BAE_CB_PAYPAL_CLIENT_SECRET
       - BAE_CB_EMAIL
       - BAE_CB_PROPAGATE_TOKEN
       - BAE_CB_MAX_UPLOAD_SIZE
@@ -173,7 +175,7 @@ services:
       - ./envs/charging.env
 
   bae-proxy:
-    image: fiware/biz-ecosystem-logic-proxy:v8.1.0-rc8
+    image: fiware/biz-ecosystem-logic-proxy:v8.1.0-dev
     container_name: bae-proxy
     depends_on:
       - bae-mongo
