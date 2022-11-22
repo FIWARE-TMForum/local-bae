@@ -53,7 +53,7 @@ services:
     volumes:
       - ./db/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
       # Uncomment for data persistance
-      #- ./mongo-data:/data/db
+      #- ./persistence/mongo-data:/data/db
 
   bae-mysql:
     image: mysql:5.7
@@ -74,7 +74,7 @@ services:
     volumes:
       - ./db/init-mysql.sql:/docker-entrypoint-initdb.d/init-mysql.sql
       # Uncomment for data persistance
-      #- ./mysql-data:/var/lib/mysql
+      #- ./persistence/mysql-data:/var/lib/mysql
 
   bae-keyrock:
     image: fiware/idm:8.1.0
@@ -158,6 +158,10 @@ services:
       retries: 1
     volumes:
       - ./init/init-charging.sh:/init/init-charging.sh
+      # Uncomment for data persistance
+      #- ./persistence/charging-inst-plugins:/opt/business-ecosystem-charging-backend/src/wstore/asset_manager/resource_plugins/plugins
+      #- ./persistence/charging-media:/opt/business-ecosystem-charging-backend/src/media
+      #- ./persistence/charging-plugins:/opt/business-ecosystem-charging-backend/src/plugins
     secrets:
       - bae_key
       - bae_cert
