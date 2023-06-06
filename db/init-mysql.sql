@@ -316,7 +316,7 @@ CREATE TABLE `oauth_client` (
 
 LOCK TABLES `oauth_client` WRITE;
 /*!40000 ALTER TABLE `oauth_client` DISABLE KEYS */;
-INSERT INTO `oauth_client` VALUES ('733fcbc4-0c4f-4b13-ab83-1ab1756fdf97','Marketplace','Marketplace based on BAE','b353c8a6-a966-4a2c-bfa6-451759cd1f0a','http://10.2.0.23:8004','http://10.2.0.23:8004/auth/fiware/callback','default','authorization_code,refresh_token','code',NULL,NULL,NULL,NULL,NULL,''),('idm_admin_app','idm','idm',NULL,'','','default','','',NULL,NULL,NULL,NULL,NULL,NULL);
+INSERT INTO `oauth_client` VALUES ('733fcbc4-0c4f-4b13-ab83-1ab1756fdf97','Marketplace','Marketplace based on BAE','b353c8a6-a966-4a2c-bfa6-451759cd1f0a','http://bae.docker:8004','http://bae.docker:8004/auth/fiware/callback','default','authorization_code,refresh_token','code',NULL,NULL,NULL,NULL,NULL,''),('idm_admin_app','idm','idm',NULL,'','','default','','',NULL,NULL,NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `oauth_client` ENABLE KEYS */;
 UNLOCK TABLES;
 
