@@ -3,11 +3,13 @@ version: '3.5'
 networks:
   bae:
     name: bae
-    external: false
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 10.2.0.0/16
+    # Uncomment for using bridge driver
+    # external: false
+    # driver: bridge
+    # ipam:
+    #   config:
+    #     - subnet: 10.2.0.0/16
+    external: true
 
 secrets:
   bae_key:
@@ -24,7 +26,7 @@ services:
       - transport.publish_port=9200
     networks:
       bae:
-        ipv4_address: 10.2.0.2
+        # ipv4_address: 10.2.0.2
         aliases:
           - bae-elasticsearch.docker
     healthcheck:
@@ -39,7 +41,7 @@ services:
     container_name: bae-mongo
     networks:
       bae:
-        ipv4_address: 10.2.0.3
+        # ipv4_address: 10.2.0.3
         aliases:
           - bae-mongo.docker
     healthcheck:
@@ -53,14 +55,14 @@ services:
     volumes:
       - ./db/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
       # Uncomment for data persistance
-      #- ./persistence/mongo-data:/data/db
+      - ./persistence/mongo-data:/data/db
 
   bae-mysql:
     image: mysql:5.7
     container_name: bae-mysql
     networks:
       bae:
-        ipv4_address: 10.2.0.4
+        # ipv4_address: 10.2.0.4
         aliases:
           - bae-mysql.docker
     healthcheck:
@@ -74,16 +76,18 @@ services:
     volumes:
       - ./db/init-mysql.sql:/docker-entrypoint-initdb.d/init-mysql.sql
       # Uncomment for data persistance
-      #- ./persistence/mysql-data:/var/lib/mysql
+      - ./persistence/mysql-data:/var/lib/mysql
 
   bae-keyrock:
     image: fiware/idm:8.1.0
     container_name: bae-keyrock
     networks:
       bae:
+        # ipv4_address: 10.2.0.10
         aliases:
-          - bae-keyrock.docker
-        ipv4_address: 10.2.0.10
+          - idm.docker
+    ports:
+      - 8080:8080
     depends_on:
       - bae-mysql
     environment:
@@ -100,7 +104,7 @@ services:
     entrypoint: /init/init-apis.sh
     networks:
       bae:
-        ipv4_address: 10.2.0.20
+        # ipv4_address: 10.2.0.20
         aliases:
           - bae-apis.docker
     healthcheck:
@@ -123,7 +127,7 @@ services:
     entrypoint: /init/init-rss.sh
     networks:
       bae:
-        ipv4_address: 10.2.0.21
+        # ipv4_address: 10.2.0.21
         aliases:
           - bae-rss.docker
     healthcheck:
@@ -139,6 +143,7 @@ services:
 
   bae-charging:
     image: fiware/biz-ecosystem-charging-backend:v8.1.0-dev
+    # image: charging-dev
     container_name: bae-charging
     depends_on:
       - bae-mongo
@@ -147,9 +152,9 @@ services:
     entrypoint: /init/init-charging.sh
     networks:
       bae:
+        # ipv4_address: 10.2.0.22
         aliases:
           - bae-charging.docker
-        ipv4_address: 10.2.0.22
     healthcheck:
       test: ["CMD", "wget", "-q", "http://localhost:8006/charging/api/assetManagement/currencyCodes"]
       start_period: 150s
@@ -159,9 +164,12 @@ services:
     volumes:
       - ./init/init-charging.sh:/init/init-charging.sh
       # Uncomment for data persistance
-      #- ./persistence/charging-inst-plugins:/opt/business-ecosystem-charging-backend/src/wstore/asset_manager/resource_plugins/plugins
-      #- ./persistence/charging-media:/opt/business-ecosystem-charging-backend/src/media
-      #- ./persistence/charging-plugins:/opt/business-ecosystem-charging-backend/src/plugins
+      - ./persistence/charging-inst-plugins:/opt/business-ecosystem-charging-backend/src/wstore/asset_manager/resource_plugins/plugins
+      - ./persistence/charging-media:/opt/business-ecosystem-charging-backend/src/media
+      - ./persistence/charging-media/assets/04c86032-2249-45be-84b9-984146a6a673:/opt/business-ecosystem-charging-backend/src/media/assets/04c86032-2249-45be-84b9-984146a6a673
+      - ./persistence/charging-plugins:/opt/business-ecosystem-charging-backend/src/plugins
+      # Uncomment for development mode
+      # - ./business-ecosystem-charging-backend:/opt/business-ecosystem-charging-backend
     secrets:
       - bae_key
       - bae_cert
@@ -180,6 +188,7 @@ services:
 
   bae-proxy:
     image: fiware/biz-ecosystem-logic-proxy:v8.1.0-dev
+    #image: proxy-dev
     container_name: bae-proxy
     depends_on:
       - bae-mongo
@@ -188,11 +197,13 @@ services:
       - bae-charging
       - bae-elasticsearch
     entrypoint: /init/init-proxy.sh
+    ports:
+      - 8004:8004
     networks:
       bae:
+        # ipv4_address: 10.2.0.23
         aliases:
-          - bae-proxy.docker
-        ipv4_address: 10.2.0.23
+          - bae.docker
     healthcheck:
       test: ["CMD-SHELL", "curl --silent --fail localhost:8004/version || exit 1"]
       start_period: 150s
@@ -201,6 +212,8 @@ services:
       retries: 5
     volumes:
       - ./init/init-proxy.sh:/init/init-proxy.sh
+      # Uncomment for development mode
+      #- ./business-ecosystem-logic-proxy/:/business-ecosystem-logic-proxy
     secrets:
       - bae_key
       - bae_cert
