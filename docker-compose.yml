@@ -60,13 +60,17 @@ services:
   bae-mysql:
     image: mysql:5.7
     container_name: bae-mysql
+    ulimits:
+      nofile:
+        soft: "65536"
+        hard: "65536"
     networks:
       bae:
         # ipv4_address: 10.2.0.4
         aliases:
           - bae-mysql.docker
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -hlocalhost -P 8152 -u root -proot --silent"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -P 8152 -u root -proot --silent"]
       start_period: 30s
       interval: 30s
       timeout: 30s
@@ -99,6 +103,10 @@ services:
   bae-apis:
     image: fiware/biz-ecosystem-apis:v8.1.0-rc1
     container_name: bae-apis
+    ulimits:
+      nofile:
+        soft: "65536"
+        hard: "65536"
     depends_on:
       - bae-mysql
     entrypoint: /init/init-apis.sh
@@ -124,6 +132,10 @@ services:
     depends_on:
       - bae-mysql
       - bae-apis
+    ulimits:
+      nofile:
+        soft: "65536"
+        hard: "65536"
     entrypoint: /init/init-rss.sh
     networks:
       bae:
