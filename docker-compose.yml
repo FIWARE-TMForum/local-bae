@@ -154,7 +154,7 @@ services:
       - ./envs/rss.env
 
   bae-charging:
-    image: fiware/biz-ecosystem-charging-backend:v8.1.0-dev
+    image: fiware/biz-ecosystem-charging-backend:v8.1.0
     # image: charging-dev
     container_name: bae-charging
     depends_on:
@@ -178,7 +178,6 @@ services:
       # Uncomment for data persistance
       - ./persistence/charging-inst-plugins:/opt/business-ecosystem-charging-backend/src/wstore/asset_manager/resource_plugins/plugins
       - ./persistence/charging-media:/opt/business-ecosystem-charging-backend/src/media
-      - ./persistence/charging-media/assets/04c86032-2249-45be-84b9-984146a6a673:/opt/business-ecosystem-charging-backend/src/media/assets/04c86032-2249-45be-84b9-984146a6a673
       - ./persistence/charging-plugins:/opt/business-ecosystem-charging-backend/src/plugins
       # Uncomment for development mode
       # - ./business-ecosystem-charging-backend:/opt/business-ecosystem-charging-backend
@@ -199,7 +198,7 @@ services:
       - ./envs/charging.env
 
   bae-proxy:
-    image: fiware/biz-ecosystem-logic-proxy:v8.1.0-dev
+    image: fiware/biz-ecosystem-logic-proxy:v8.1.0
     #image: proxy-dev
     container_name: bae-proxy
     depends_on:
